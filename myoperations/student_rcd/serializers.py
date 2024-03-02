@@ -9,9 +9,10 @@ class CustomerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class JournalEntrySerializer(serializers.ModelSerializer):
+    customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
     class Meta:
         model = JournalEntry
-        fields = '__all__'
+        fields = ['id', 'date', 'description', 'debit_account_id', 'debit_amount', 'credit_account_id', 'credit_amount', 'customer']
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:

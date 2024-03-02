@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'myoperations.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'my_double_entry_system',
+        'NAME': 'double_entry_system',
         'USER': 'root',
         'PASSWORD': 'nomi12345',
         'HOST': 'localhost',
