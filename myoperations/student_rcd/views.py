@@ -48,6 +48,56 @@ class JournalEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
     #         return Response(journal_entry_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+def get_customer_data(request):
+    if request.method == 'GET':
+        customers = Customer.objects.all()
+        customer_data = []
+        for customer in customers:
+            customer_dict = {}
+            customer_dict['customer'] = CustomerSerializer(customer).data
+            customer_dict['transactions'] = []
+            total_debit = 0
+            total_credit = 0
+            journal_entries = JournalEntry.objects.filter(customer=customer)
+            for entry in journal_entries:
+                debit_entries = Transaction.objects.filter(journal_entry=entry, description__icontains='debit')
+                credit_entries = Transaction.objects.filter(journal_entry=entry, description__icontains='credit')
+                transaction_data = {
+                    'journal_entry': JournalEntrySerializer(entry).data,
+                    'debit_entries': TransactionSerializer(debit_entries, many=True).data,
+                    'credit_entries': TransactionSerializer(credit_entries, many=True).data,
+                }
+                total_debit += sum(entry.debit_amount for entry in debit_entries)
+                total_credit += sum(entry.credit_amount for entry in credit_entries)
+                customer_dict['transactions'].append(transaction_data)
+            customer_dict['total_debit'] = total_debit
+            customer_dict['total_credit'] = total_credit
+            customer_data.append(customer_dict)
+        return Response(customer_data)
+
+# @api_view(['GET'])
+# def get_customer_data(request):
+#     if request.method == 'GET':
+#         customers = Customer.objects.all()
+#         customer_data = []
+#         for customer in customers:
+#             customer_dict = {}
+#             customer_dict['customer'] = CustomerSerializer(customer).data
+#             customer_dict['transactions'] = []
+#             journal_entries = JournalEntry.objects.filter(customer=customer)
+#             for entry in journal_entries:
+#                 transaction_data = {
+#                     'journal_entry': JournalEntrySerializer(entry).data,
+#                     'debit_entries': TransactionSerializer(Transaction.objects.filter(journal_entry=entry, description__icontains='debit'), many=True).data,
+#                     'credit_entries': TransactionSerializer(Transaction.objects.filter(journal_entry=entry, description__icontains='credit'), many=True).data,
+#                 }
+#                 customer_dict['transactions'].append(transaction_data)
+#             customer_data.append(customer_dict)
+#         return Response(customer_data)
+
+
+
 @api_view(['POST'])
 def create_debit_entry(request, customer_id):
     if request.method == 'POST':
