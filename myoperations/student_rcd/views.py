@@ -21,31 +21,98 @@ class JournalEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = JournalEntrySerializer
 
 
-    @api_view(['POST'])
-    def create_journal_entry(request, customer_id):
-        if request.method == 'POST':
-            try:
-                customer = Customer.objects.get(id=customer_id)
-            except Customer.DoesNotExist:
-                return Response({"error": f"Customer with ID {customer_id} does not exist"}, status=status.HTTP_404_NOT_FOUND)
+    # @api_view(['POST'])
+    # def create_journal_entry(request, customer_id):
+    #     if request.method == 'POST':
+    #         try:
+    #             customer = Customer.objects.get(id=customer_id)
+    #         except Customer.DoesNotExist:
+    #             return Response({"error": f"Customer with ID {customer_id} does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Create the JournalEntry object
-            journal_entry_data = {
-                'date': request.data.get('date'),
-                'description': request.data.get('description'),
-                'debit_account_id': request.data.get('debit_account_id'),
-                'debit_amount': request.data.get('debit_amount'),
-                'credit_account_id': request.data.get('credit_account_id'),
-                'credit_amount': request.data.get('credit_amount'),
-                'customer': customer_id  # Pass the customer ID here
-            }
+    #         # Create the JournalEntry object
+    #         journal_entry_data = {
+    #             'date': request.data.get('date'),
+    #             'description': request.data.get('description'),
+    #             'debit_account_id': request.data.get('debit_account_id'),
+    #             'debit_amount': request.data.get('debit_amount'),
+    #             'credit_account_id': request.data.get('credit_account_id'),
+    #             'credit_amount': request.data.get('credit_amount'),
+    #             'customer': customer_id  # Pass the customer ID here
+    #         }
 
-            journal_entry_serializer = JournalEntrySerializer(data=journal_entry_data)
+    #         journal_entry_serializer = JournalEntrySerializer(data=journal_entry_data)
 
-            if journal_entry_serializer.is_valid():
-                journal_entry_serializer.save()
-                return Response(journal_entry_serializer.data, status=status.HTTP_201_CREATED)
-            return Response(journal_entry_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #         if journal_entry_serializer.is_valid():
+    #             journal_entry_serializer.save()
+    #             return Response(journal_entry_serializer.data, status=status.HTTP_201_CREATED)
+    #         return Response(journal_entry_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def create_debit_entry(request, customer_id):
+    if request.method == 'POST':
+        try:
+            customer = Customer.objects.get(id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({"error": f"Customer with ID {customer_id} does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Deserialize the request data
+        date = request.data.get('date')
+        description = request.data.get('description')
+        debit_account_id = request.data.get('debit_account_id')
+        debit_amount = request.data.get('debit_amount')
+
+        # Create the debit journal entry
+        debit_journal_entry_data = {
+            'date': date,
+            'description': description,
+            'debit_account_id': debit_account_id,
+            'debit_amount': debit_amount,
+            'customer': customer_id
+        }
+
+        # Serialize the data and save the journal entry
+        debit_serializer = JournalEntrySerializer(data=debit_journal_entry_data)
+
+        if debit_serializer.is_valid():
+            debit_serializer.save()
+            return Response({"message": "Debit entry created successfully"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(debit_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def create_credit_entry(request, customer_id):
+    if request.method == 'POST':
+        try:
+            customer = Customer.objects.get(id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({"error": f"Customer with ID {customer_id} does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Deserialize the request data
+        date = request.data.get('date')
+        description = request.data.get('description')
+        credit_account_id = request.data.get('credit_account_id')
+        credit_amount = request.data.get('credit_amount')
+
+        # Create the credit journal entry
+        credit_journal_entry_data = {
+            'date': date,
+            'description': description,
+            'credit_account_id': credit_account_id,
+            'credit_amount': credit_amount,
+            'customer': customer_id
+        }
+
+        # Serialize the data and save the journal entry
+        credit_serializer = JournalEntrySerializer(data=credit_journal_entry_data)
+
+        if credit_serializer.is_valid():
+            credit_serializer.save()
+            return Response({"message": "Credit entry created successfully"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(credit_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class TransactionListCreateView(generics.ListCreateAPIView):

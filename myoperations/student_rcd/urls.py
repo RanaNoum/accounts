@@ -20,14 +20,20 @@ from .views import (
     CustomerListCreateView, CustomerDetailView,
     JournalEntryListCreateView, JournalEntryDetailView,
     TransactionListCreateView, TransactionDetailView,
+    create_debit_entry, create_credit_entry,
 )
 
 urlpatterns = [
     path('customers/', CustomerListCreateView.as_view(), name='customer-list-create'),
     path('customers/<int:pk>/', CustomerDetailView.as_view(), name='customer-detail'),
-    # path('customers/<int:customer_id>/journal_entries/',as_view(), name='create_journal_entry'),
-    path('customers/<int:customer_id>/journal-entries/', JournalEntryListCreateView.as_view(), name='create-journal-entry'),
+
+    # path('customers/<int:customer_id>/journal-entries/', JournalEntryListCreateView.as_view(), name='create-journal-entry'),
     
+     # Route for creating debit entry
+    path('customers/<int:customer_id>/journal-entries/debit/', create_debit_entry, name='create-debit-entry'),
+
+    # Route for creating credit entry
+    path('customers/<int:customer_id>/journal-entries/credit/', create_credit_entry, name='create-credit-entry'),
     path('journal-entries/', JournalEntryListCreateView.as_view(), name='journal-entry-list-create'),
     path('journal-entries/<int:pk>/', JournalEntryDetailView.as_view(), name='journal-entry-detail'),
 
