@@ -4,14 +4,14 @@ from .views import (
     CustomerListCreateView, CustomerDetailView,
     JournalEntryListCreateView, JournalEntryDetailView,
     TransactionListCreateView, TransactionDetailView,
-    create_debit_entry, create_credit_entry,get_customer_data,
+    create_debit_entry, create_credit_entry,get_customer_data,delete_customer,
 )
 
 urlpatterns = [
     path('customers-list/', get_customer_data, name='get-customer-data'),
     path('customers/', CustomerListCreateView.as_view(), name='customer-list-create'),
     path('customers/<int:pk>/', CustomerDetailView.as_view(), name='customer-detail'),
-
+     path('customers/<int:customer_id>/delete/', delete_customer, name='delete-customer'),
    
     path('customers/<int:customer_id>/journal-entries/debit/', create_debit_entry, name='create-debit-entry'),
 

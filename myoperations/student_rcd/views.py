@@ -12,6 +12,8 @@ class CustomerDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
 
+
+
 class JournalEntryListCreateView(generics.ListCreateAPIView):
     queryset = JournalEntry.objects.all()
     serializer_class = JournalEntrySerializer
@@ -21,32 +23,7 @@ class JournalEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = JournalEntrySerializer
 
 
-    # @api_view(['POST'])
-    # def create_journal_entry(request, customer_id):
-    #     if request.method == 'POST':
-    #         try:
-    #             customer = Customer.objects.get(id=customer_id)
-    #         except Customer.DoesNotExist:
-    #             return Response({"error": f"Customer with ID {customer_id} does not exist"}, status=status.HTTP_404_NOT_FOUND)
-
-    #         # Create the JournalEntry object
-    #         journal_entry_data = {
-    #             'date': request.data.get('date'),
-    #             'description': request.data.get('description'),
-    #             'debit_account_id': request.data.get('debit_account_id'),
-    #             'debit_amount': request.data.get('debit_amount'),
-    #             'credit_account_id': request.data.get('credit_account_id'),
-    #             'credit_amount': request.data.get('credit_amount'),
-    #             'customer': customer_id  # Pass the customer ID here
-    #         }
-
-    #         journal_entry_serializer = JournalEntrySerializer(data=journal_entry_data)
-
-    #         if journal_entry_serializer.is_valid():
-    #             journal_entry_serializer.save()
-    #             return Response(journal_entry_serializer.data, status=status.HTTP_201_CREATED)
-    #         return Response(journal_entry_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
 
 @api_view(['GET'])
 def get_customer_data(request):
@@ -76,25 +53,37 @@ def get_customer_data(request):
             customer_data.append(customer_dict)
         return Response(customer_data)
 
-# @api_view(['GET'])
-# def get_customer_data(request):
-#     if request.method == 'GET':
-#         customers = Customer.objects.all()
-#         customer_data = []
-#         for customer in customers:
-#             customer_dict = {}
-#             customer_dict['customer'] = CustomerSerializer(customer).data
-#             customer_dict['transactions'] = []
-#             journal_entries = JournalEntry.objects.filter(customer=customer)
-#             for entry in journal_entries:
-#                 transaction_data = {
-#                     'journal_entry': JournalEntrySerializer(entry).data,
-#                     'debit_entries': TransactionSerializer(Transaction.objects.filter(journal_entry=entry, description__icontains='debit'), many=True).data,
-#                     'credit_entries': TransactionSerializer(Transaction.objects.filter(journal_entry=entry, description__icontains='credit'), many=True).data,
-#                 }
-#                 customer_dict['transactions'].append(transaction_data)
-#             customer_data.append(customer_dict)
-#         return Response(customer_data)
+
+
+
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Customer
+
+@api_view(['DELETE'])
+def delete_customer(request, customer_id):
+  """
+  Deletes a customer permanently from the database.
+
+  Args:
+      request: The incoming Django request object.
+      customer_id: The ID of the customer to be deleted.
+
+  Returns:
+      A Django response object with appropriate status code and message.
+  """
+  if request.method == 'DELETE':
+    try:
+      customer = Customer.objects.get(pk=customer_id)
+      customer.delete()
+      return Response({"message": "Customer deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    except Customer.DoesNotExist:
+      return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+  else:
+    return Response({"error": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 
