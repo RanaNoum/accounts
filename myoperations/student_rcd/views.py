@@ -58,10 +58,59 @@ def get_customer_data(request):
 
 
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Customer
+@api_view(['DELETE'])
+def delete_debit_entry(request, journal_entry_id):
+  """
+  Deletes a debit journal entry permanently from the database.
+
+  Args:
+      request: The incoming Django request object.
+      journal_entry_id: The ID of the journal entry to be deleted.
+
+  Returns:
+      A Django response object with appropriate status code and message.
+  """
+  if request.method == 'DELETE':
+    try:
+      journal_entry = JournalEntry.objects.get(pk=journal_entry_id)
+      # Check if it's a debit entry
+      if journal_entry.debit_amount > 0:
+        journal_entry.delete()
+        return Response({"message": "Debit entry deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+      else:
+        return Response({"error": "This is not a debit entry"}, status=status.HTTP_400_BAD_REQUEST)
+    except JournalEntry.DoesNotExist:
+      return Response({"error": "Journal entry not found"}, status=status.HTTP_404_NOT_FOUND)
+  else:
+    return Response({"error": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@api_view(['DELETE'])
+def delete_credit_entry(request, journal_entry_id):
+  """
+  Deletes a credit journal entry permanently from the database.
+
+  Args:
+      request: The incoming Django request object.
+      journal_entry_id: The ID of the journal entry to be deleted.
+
+  Returns:
+      A Django response object with appropriate status code and message.
+  """
+  if request.method == 'DELETE':
+    try:
+      journal_entry = JournalEntry.objects.get(pk=journal_entry_id)
+      # Check if it's a credit entry
+      if journal_entry.credit_amount > 0:
+        journal_entry.delete()
+        return Response({"message": "Credit entry deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+      else:
+        return Response({"error": "This is not a credit entry"}, status=status.HTTP_400_BAD_REQUEST)
+    except JournalEntry.DoesNotExist:
+      return Response({"error": "Journal entry not found"}, status=status.HTTP_404_NOT_FOUND)
+  else:
+    return Response({"error": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
 @api_view(['DELETE'])
 def delete_customer(request, customer_id):
@@ -161,3 +210,70 @@ class TransactionListCreateView(generics.ListCreateAPIView):
 class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+
+
+
+
+@api_view(['POST'])
+def create_transaction(request, journal_entry_id):
+  """
+  Creates a new transaction associated with a specific journal entry.
+
+  Args:
+      request: The incoming Django request object.
+      journal_entry_id: The ID of the journal entry to associate the transaction with.
+
+  Returns:
+      A Django response object with appropriate status code and message.
+  """
+  if request.method == 'POST':
+    try:
+      journal_entry = JournalEntry.objects.get(pk=journal_entry_id)
+    except JournalEntry.DoesNotExist:
+      return Response({"error": "Journal entry not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Deserialize the request data
+    account_id = request.data.get('account_id')
+    amount = request.data.get('amount')
+    description = request.data.get('description', '')  # Set default empty description
+
+    # Create the transaction
+    transaction_data = {
+      'journal_entry': journal_entry,
+      'account_id': account_id,
+      'amount': amount,
+      'description': description,
+    }
+
+    serializer = TransactionSerializer(data=transaction_data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response({"message": "Transaction created successfully"}, status=status.HTTP_201_CREATED)
+    else:
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+  else:
+    return Response({"error": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@api_view(['DELETE'])
+def delete_transaction(request, transaction_id):
+  """
+  Deletes a transaction permanently from the database.
+
+  Args:
+      request: The incoming Django request object.
+      transaction_id: The ID of the transaction to be deleted.
+
+  Returns:
+      A Django response object with appropriate status code and message.
+  """
+  if request.method == 'DELETE':
+    try:
+      transaction = Transaction.objects.get(pk=transaction_id)
+      transaction.delete()
+      return Response({"message": "Transaction deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    except Transaction.DoesNotExist:
+      return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
+  else:
+    return Response({"error": "Method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
